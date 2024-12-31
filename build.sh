@@ -31,9 +31,9 @@ export GIT_TAG=v7.2.14
 
 
 #
-#  By default use Ubuntu Focal Fossa (20.04) LTS
+#  By default use Ubuntu Noble Numbat (24.04) LTS
 #
-export OS_IMAGE=ubuntu:focal
+export OS_IMAGE=ubuntu:noble
 
 
 #

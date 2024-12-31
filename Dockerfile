@@ -24,9 +24,9 @@
 
 
 #
-#  By default use Ubuntu Focal Fossa (20.04) LTS
+#  By default use Ubuntu Noble Numbat (24.04) LTS
 #
-ARG OS_IMAGE=ubuntu:focal
+ARG OS_IMAGE=ubuntu:noble
 
 
 # ======================================================================
@@ -77,7 +77,8 @@ RUN     apt-get install -y \
                 libtool \
                 m4 \
                 make \
-                openssl
+                openssl \
+                python3
 
 
 #
@@ -86,7 +87,7 @@ RUN     apt-get install -y \
 RUN     apt-get install -y \
                 libbz2-dev \
                 libedit-dev \
-                libldap-dev \
+                libldap2-dev \
                 libssl-dev \
                 lzma-dev 
 
@@ -209,7 +210,7 @@ LABEL   docker_tag="$DOCKER_TAG"
 #  Update the OS with all the runtime packages Virtuoso requires
 #
 RUN     apt-get         update \
-        && apt-get      install -y ca-certificates less openssl pwgen wget netcat nano libedit2 libldap-2.4-2 \
+        && apt-get      install -y ca-certificates less openssl pwgen wget netcat-traditional nano libedit2 libldap2 \
         && apt-get      remove --purge -y \
         && apt-get      autoremove -y \
         && apt-get      autoclean \
