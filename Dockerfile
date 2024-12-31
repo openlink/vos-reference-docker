@@ -53,7 +53,7 @@ ENV GEOS_VERSION=3.5.1
 ENV VIRTUOSO_HOME	/opt/virtuoso-opensource
 ENV LC_ALL		C.UTF-8
 ENV DEBIAN_FRONTEND	noninteractive
-
+ENV MAKE_FLAGS         -j4
 
 #
 #  Update the repository
@@ -111,7 +111,8 @@ RUN     curl "https://download.osgeo.org/proj/proj-$PROJ_VERSION.tar.gz" | tar -
                --disable-shared \
                --with-pic \
                --without-jni \
-        && make all install
+        && make "$MAKE_FLAGS" all \
+        && make install
 
 
 #
@@ -124,7 +125,8 @@ RUN    curl "https://download.osgeo.org/geos/geos-$GEOS_VERSION.tar.bz2" | tar -
                --prefix=/usr/local \
                --disable-shared \
                --with-pic \
-       && make all install
+       && make "$MAKE_FLAGS" all \
+       && make install
 
 
 #
@@ -147,7 +149,7 @@ RUN     git init -q . \
                 --enable-geos=/usr/local \
                 --enable-proj4=/usr/local \
                 --enable-shapefileio \
-        && make -j 4 all \
+        && make "$MAKE_FLAGS" all \
         && make check || true \
         && make install \
         && mkdir "$VIRTUOSO_HOME"/installer \
