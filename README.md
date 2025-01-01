@@ -1,6 +1,6 @@
 # Building a Virtuoso Open-Source Edition Reference Docker
 
-_ Copyright (C) 2023 OpenLink Software <vos.admin@openlinksw.com>_
+_Copyright (C) 2025 OpenLink Software <vos.admin@openlinksw.com>_
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->

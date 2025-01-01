@@ -6,7 +6,7 @@
 #  This file is part of the OpenLink Software Virtuoso Open-Source (VOS)
 #  project.
 #
-#  Copyright (C) 2018-2023 OpenLink Software
+#  Copyright (C) 2018-2025 OpenLink Software
 #
 #  This project is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -200,7 +200,7 @@ ENV TERM                xterm
 #
 LABEL   com.openlinksw.vendor="OpenLink Software"
 LABEL   maintainer="OpenLink Support <support@openlinksw.com>"
-LABEL   copyright="Copyright (C) 2023 OpenLink Software"
+LABEL   copyright="Copyright (C) 2025 OpenLink Software"
 LABEL   version="$DOCKER_TAG/$GIT_TAG"
 LABEL   description="OpenLink Virtuoso Open Source Edition ($GIT_TAG) -- Docker Image (Ubuntu/$TARGETPLATFORM)"
 LABEL   docker_tag="$DOCKER_TAG"
