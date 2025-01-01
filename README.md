@@ -51,14 +51,14 @@ $ git clone https://github.com/openlink/vos-reference-docker
 $ ./build.sh
 
 ======================================================================
-  BUILD STARTED: Tue Dec  5 12:13:17 CET 2023
+  BUILD STARTED: Wed Jan  1 10:26:08 AM UTC 2025
 ======================================================================
 
- * Building docker image 
-   (this may take around 20-30 minuts on current hardware)
+ * Building docker image
+   (this may take around 20-30 minutes on current hardware)
 
 ======================================================================
-  BUILD FINISHED: Tue Dec  5 12:36:31 CET 2023
+  BUILD FINISHED: Wed Jan  1 10:42:54 AM UTC 2025
 ======================================================================
 ```
 
@@ -67,14 +67,14 @@ $ ./build.sh
 ```
 $ docker run -i -t vos-reference version
 
-[vos-reference/v7.2.11]
+[vos-reference/v7.2.14]
 
 This Docker image is using the following version of Virtuoso:
 
 Virtuoso Open Source Edition (Column Store) (multi threaded)
-Version 7.2.11.3238-pthreads as of Dec  5 2023 (d89671f)
-Compiled for Linux (aarch64-unknown-linux-gnu)
-Copyright (C) 1998-2023 OpenLink Software
+Version 7.2.14.3240-pthreads as of Jan  1 2025 (ffed467)
+Compiled for Linux (x86_64-pc-linux-gnu)
+Copyright (C) 1998-2024 OpenLink Software
 
 ```
 
@@ -90,7 +90,7 @@ state of the VOS tree to use:
 #
 #  Build using a specific git tag, branch or commit id
 #
-export GIT_TAG=v7.2.11
+export GIT_TAG=v7.2.14
 #export GIT_TAG=develop/7
 #export GIT_TAG=a1f22974f8fb8fc485e93c425c6bf727725016f3
 ```
