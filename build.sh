@@ -5,7 +5,7 @@
 #  This file is part of the OpenLink Software Virtuoso Open-Source (VOS)
 #  project.
 #
-#  Copyright (C) 2018-2023 OpenLink Software
+#  Copyright (C) 2018-2025 OpenLink Software
 #
 #  This project is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -25,15 +25,15 @@
 #
 #  Build using a specific git tag, branch or commit id
 #
-export GIT_TAG=v7.2.11
+export GIT_TAG=v7.2.14
 #export GIT_TAG=develop/7
-#export GIT_TAG=a1f22974f8fb8fc485e93c425c6bf727725016f3
+#export GIT_TAG=ffed4676dfa6df8932b6723d75043fcc8e1bbf61
 
 
 #
-#  By default use Ubuntu Focal Fossa (20.04) LTS
+#  By default use Ubuntu Noble Numbat (24.04) LTS
 #
-export OS_IMAGE=ubuntu:focal
+export OS_IMAGE=ubuntu:noble
 
 
 #

@@ -6,7 +6,7 @@
 #  This file is part of the OpenLink Software Virtuoso Open-Source (VOS)
 #  project.
 #
-#  Copyright (C) 2018-2023 OpenLink Software
+#  Copyright (C) 2018-2025 OpenLink Software
 #
 #  This project is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -24,9 +24,9 @@
 
 
 #
-#  By default use Ubuntu Focal Fossa (20.04) LTS
+#  By default use Ubuntu Noble Numbat (24.04) LTS
 #
-ARG OS_IMAGE=ubuntu:focal
+ARG OS_IMAGE=ubuntu:noble
 
 
 # ======================================================================
@@ -53,7 +53,7 @@ ENV GEOS_VERSION=3.5.1
 ENV VIRTUOSO_HOME	/opt/virtuoso-opensource
 ENV LC_ALL		C.UTF-8
 ENV DEBIAN_FRONTEND	noninteractive
-
+ENV MAKE_FLAGS         -j4
 
 #
 #  Update the repository
@@ -77,7 +77,8 @@ RUN     apt-get install -y \
                 libtool \
                 m4 \
                 make \
-                openssl
+                openssl \
+                python3
 
 
 #
@@ -86,7 +87,7 @@ RUN     apt-get install -y \
 RUN     apt-get install -y \
                 libbz2-dev \
                 libedit-dev \
-                libldap-dev \
+                libldap2-dev \
                 libssl-dev \
                 lzma-dev 
 
@@ -111,7 +112,8 @@ RUN     curl "https://download.osgeo.org/proj/proj-$PROJ_VERSION.tar.gz" | tar -
                --disable-shared \
                --with-pic \
                --without-jni \
-        && make all install
+        && make "$MAKE_FLAGS" all \
+        && make install
 
 
 #
@@ -124,7 +126,8 @@ RUN    curl "https://download.osgeo.org/geos/geos-$GEOS_VERSION.tar.bz2" | tar -
                --prefix=/usr/local \
                --disable-shared \
                --with-pic \
-       && make all install
+       && make "$MAKE_FLAGS" all \
+       && make install
 
 
 #
@@ -147,7 +150,7 @@ RUN     git init -q . \
                 --enable-geos=/usr/local \
                 --enable-proj4=/usr/local \
                 --enable-shapefileio \
-        && make -j 4 all \
+        && make "$MAKE_FLAGS" all \
         && make check || true \
         && make install \
         && mkdir "$VIRTUOSO_HOME"/installer \
@@ -197,7 +200,7 @@ ENV TERM                xterm
 #
 LABEL   com.openlinksw.vendor="OpenLink Software"
 LABEL   maintainer="OpenLink Support <support@openlinksw.com>"
-LABEL   copyright="Copyright (C) 2023 OpenLink Software"
+LABEL   copyright="Copyright (C) 2025 OpenLink Software"
 LABEL   version="$DOCKER_TAG/$GIT_TAG"
 LABEL   description="OpenLink Virtuoso Open Source Edition ($GIT_TAG) -- Docker Image (Ubuntu/$TARGETPLATFORM)"
 LABEL   docker_tag="$DOCKER_TAG"
@@ -207,7 +210,7 @@ LABEL   docker_tag="$DOCKER_TAG"
 #  Update the OS with all the runtime packages Virtuoso requires
 #
 RUN     apt-get         update \
-        && apt-get      install -y ca-certificates less openssl pwgen wget netcat nano libedit2 libldap-2.4-2 \
+        && apt-get      install -y ca-certificates less openssl pwgen wget netcat-traditional nano libedit2 libldap2 \
         && apt-get      remove --purge -y \
         && apt-get      autoremove -y \
         && apt-get      autoclean \
