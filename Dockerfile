@@ -249,7 +249,9 @@ WORKDIR /database
 #  The TCP ports that Virtuoso uses
 #
 EXPOSE  1111/tcp
+EXPOSE  1112/tcp
 EXPOSE  8890/tcp
+EXPOSE  8891/tcp
 
 
 #

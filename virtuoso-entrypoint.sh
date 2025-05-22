@@ -186,6 +186,59 @@ generate_initial_password() {
 
 
 #
+#  Generate selfsigned SSL Certificate
+#
+generate_ssl_certificate() {
+	#
+	#  Do not regenerate if keypair already exists
+	#
+	if [ -f "/database/virtuoso.crt" ]
+	then
+		return
+	fi
+
+	#
+	#  Check if operator has provided a pair of SSL Certificates
+	#
+	file_env SSL_KEY	unset
+	file_env SSL_CRT	unset
+
+	#
+	#  Check for custom SSL keypair
+	#
+	if [ -f "$SSL_KEY_FILE" -a -f "$SSL_CRT_FILE" ]
+	then
+		cp "$SSL_KEY_FILE" /database/virtuoso.key
+		cp "$SSL_CRT_FILE" /database/virtuoso.crt
+	fi
+
+	if [ ! -f "/database/virtuoso.key" ]
+	then
+		openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:secp384r1 -days 3650 -nodes \
+			-keyout virtuoso.key \
+			-out virtuoso.crt \
+			-subj "/CN=example.com"   \
+			-addext "subjectAltName=DNS:example.com,DNS:*.example.com,IP:127.0.0.1"
+
+		#
+		#  Enable SSL for ODBC/JDBC
+		#
+		"$INIFILE" -f virtuoso.ini -s Parameters -k SSLServerPort -v 1112
+		"$INIFILE" -f virtuoso.ini -s Parameters -k SSLCertificate -v virtuoso.crt
+		"$INIFILE" -f virtuoso.ini -s Parameters -k SSLPrivateKey -v virtuoso.key
+
+		#
+		#  Enable HTTPS
+		#
+		"$INIFILE" -f virtuoso.ini -s HTTPServer -k SSLPort -v 8891
+		"$INIFILE" -f virtuoso.ini -s HTTPServer -k SSLCertificate -v virtuoso.crt
+		"$INIFILE" -f virtuoso.ini -s HTTPServer -k SSLPrivateKey -v virtuoso.key
+
+	fi
+}
+
+
+#
 #  Check to see if this instance has already been initialized
 #
 initialize_virtuoso_directory()
@@ -219,6 +272,12 @@ initialize_virtuoso_directory()
 		#
 		echo "Generating password"
 		generate_initial_password
+
+		#
+		#  Generate SSL keypair
+		#
+		echo "Generating SSL keypair"
+		generate_ssl_certificate
 
 		#
 		#  Create an initial database
