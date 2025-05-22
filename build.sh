@@ -108,6 +108,10 @@ ECHO "  BUILD STARTED: `date`"
 ECHO "======================================================================"
 
 ECHO ""
+ECHO " * Pulling docker image"
+docker pull $OS_IMAGE
+
+ECHO ""
 ECHO " * Building docker image"
 ECHO "   (this may take around 20-30 minutes on current hardware)"
 time docker build \
