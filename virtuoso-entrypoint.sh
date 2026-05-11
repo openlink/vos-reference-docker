@@ -60,7 +60,7 @@ file_env() {
     local fileVar="${var}_FILE"
     local def="${2:-}"
     if [ "${!var:-}" ] && [ "${!fileVar:-}" ]; then
-        echo >&2 "error: both $var and $fileVar are set (but are exclusive)"
+        echo "error: both $var and $fileVar are set (but are exclusive)" >&2
         exit 1
     fi
     local val="$def"
@@ -258,7 +258,7 @@ initialize_virtuoso_directory()
         #
         #  Rewrite Plugins section
         #
-                echo "Checking Plugins section"
+        echo "Checking Plugins section"
         virtuoso_ini_plugins
 
         #
@@ -364,17 +364,19 @@ case "$CMD" in
         echo ""
         echo "This Docker image is using the following version of Virtuoso:"
         echo ""
-        exec "$VIRTUOSO" -? 2>&1 | head -5
-        exit 1
+        "$VIRTUOSO" -? 2>&1 | head -5
+        exit 0
         ;;
 
     isql)
         exec "$ISQL" localhost:1111 dba dba "$@"
+        echo "exec of [$ISQL] failed" >&2
         exit 1
         ;;
 
     bash)
         exec /bin/bash
+        echo "exec of [/bin/bash] failed" >&2
         exit 1
         ;;
 
@@ -385,4 +387,5 @@ esac
 #  Try to execute the given command
 #
 exec "$CMD" "$@"
+echo "exec of [$CMD] failed" >&2
 exit 1
