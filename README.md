@@ -1,4 +1,4 @@
-# Building a Virtuoso Open-Source Edition Reference Docker
+# Building a Virtuoso Open-Source Edition Reference Docker Image
 
 _Copyright (C) 2026 OpenLink Software <vos.admin@openlinksw.com>_
 
@@ -7,45 +7,35 @@ _Copyright (C) 2026 OpenLink Software <vos.admin@openlinksw.com>_
 **Table of Contents**
 
 - [Introduction](#introduction)
-- [Downloading and building the docker image](#downloading-and-building-the-docker-image)
-- [Configuring the build](#configuring-the-build)
-- [How does Openlink build the official images it distributes?](#how-does-openlink-build-the-official-images-it-distributes)
+- [Downloading and Building the Docker Image](#downloading-and-building-the-docker-image)
+- [Configuring the Build](#configuring-the-build)
+- [How OpenLink Builds Official Images](#how-openlink-builds-official-images)
 - [See Also](#see-also)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Introduction
 
-This Git tree exemplifies how to build a reference implementation
-of the Virtuoso Open-Source (VOS) docker image for a single
-architecture.
+This git repository illustrates how to build a reference Virtuoso Open-Source (VOS) Docker image for a single architecture.
 
-This image is functionally equivalent to the version we distribute
-via
-[the official OpenLink repository on Docker Hub](https://hub.docker.com/repository/docker/openlink/virtuoso-opensource-7/general).
+This image is functionally equivalent to the version distributed via [the official OpenLink repository on Docker Hub](https://hub.docker.com/repository/docker/openlink/virtuoso-opensource-7/general).
 
-It has been tested on both Ubuntu 18.04 (x86_64) and macOS Big Sur
-11.6 (x86_64 and Apple Silicon).
+Testing covers Ubuntu 18.04 (x86_64) and macOS Big Sur 11.6 (x86_64 and Apple Silicon).
 
-Most modern Linux distributions provide docker packages as part of
-their repository.
+Most modern Linux distributions provide Docker packages. For Apple macOS and Microsoft Windows, Docker installers are found at the [Docker website](https://docker.com/products).
 
-For Apple macOS and Microsoft Windows Docker installers can be
-downloaded from the [Docker website](https://docker.com/products).
-
-**Note**: Installing software like git, Docker and Docker Compose
-is left as an exercise for the reader.
+**Note**: Please install `git`, `docker` and `docker compose` before running build steps.
 
 
-## Downloading and building the docker image
+## Downloading and Building the Docker Image
 
-1. Clone the git tree to your own system using the following command:
+1. Clone the git repository:
 
 ```
 $ git clone https://github.com/openlink/vos-reference-docker
 ```
 
-2. Build the docker image using the following command:
+2. Build the Docker image:
 
 ```
 $ ./build.sh
@@ -64,81 +54,54 @@ $ ./build.sh
 ======================================================================
 ```
 
-3. Check the version number of this docker image:
+3. Check the Docker image version:
 
 ```
 $ docker run -i -t vos-reference version
 
 [vos-reference/v7.2.15]
 
-This Docker image is using the following version of Virtuoso:
+This Docker image contains this Virtuoso version:
 
+```
 Virtuoso Open Source Edition (Column Store) (multi threaded)
 Version 7.2.15.3241-pthreads as of May 23 2025 (bae7c13)
 Compiled for Linux (x86_64-pc-linux-gnu)
 Copyright (C) 1998-2026 OpenLink Software
 ```
 
-## Configuring the build
+## Configuring the Build
 
-The `build.sh` script uses a handful of environment variables to
-control the build.
+The `build.sh` script uses a small set of environment variables to control build behavior.
 
-The following setting in the script is used to checkout the exact
-state of the VOS tree to use:
+The `GIT_TAG` variable in the script specifies the VOS tree state to check out:
 
 ```
 #
-#  Build using a specific git tag, branch or commit id
+#  Build using a specific git tag, branch or commit ID
 #
 export GIT_TAG=v7.2.15
 #export GIT_TAG=stable/7
 #export GIT_TAG=bae7c13af8f4cb5ca0ecbaa9c4cda7f1b5f47f07
 ```
 
-The following setting is used to tag the image you build:
+The `DOCKER_TAG` variable sets the output image tag:
 
 ```
 export DOCKER_TAG=vos-reference
 ```
 
-## How does Openlink build the official images it distributes?
+## How OpenLink Builds Official Images
 
-The difference between this reference image and the official images
-that OpenLink publishes is that the official images are built with
-[Docker multi-arch support](https://docs.docker.com/desktop/multi-arch/)
-to run natively on ARM64-based systems (macOS on Apple Silicon,
-cloud-based ARM instances, Raspberry Pi, etc.) as well as Intel/AMD
-64bit-based systems that support the use of docker containers.
+The difference between this reference image and the official images published by OpenLink is simple: official images are built with [Docker multi-arch support](https://docs.docker.com/desktop/multi-arch/) to run natively on ARM64-based systems (macOS on Apple Silicon, cloud-based ARM instances, Raspberry Pi and similar systems) and Intel/AMD 64-bit systems supporting Docker containers.
 
-Additionally, OpenLink supplies VOS images based on either Ubuntu
-or Alpine, making a total of 4 internal builds.
+OpenLink also provides VOS images based on Ubuntu or Alpine, for a total of four internal builds.
 
-Building the official images using the method described in this
-reference image would require half of these builds to be run via
-an emulator which of course would be very slow.
+Building official images with the method in this reference image requires half of those builds to run through an emulator, which is slow. A native build usually takes 20-30 minutes on a matching CPU. The same build for a different CPU architecture through an emulator takes about 4-5 hours. Total build time across both distributions and architectures is about 10 hours.
 
-While a native build takes around 20-30 minutes to complete for the
-native CPU, performing the same build for the other CPU type using
-an emulator takes about 4-5 hours.
+OpenLink already builds and tests Virtuoso Open Source on multiple platforms to validate behavior with different operating systems, development tools and libraries. This is equivalent to the `vos-build` steps in this reference `Dockerfile`.
 
-The total build time for both distributions and architectures would
-be around 10 hours.
-
-OpenLink already builds and tests Virtuoso Open Source on a number
-of platforms to ensure our software works using different versions
-of operating systems, development tools and libraries.
-
-This is the equivalent of the "vos-build" steps in this reference
-`Dockerfile`.
-
-These builds are performed in parallel on separate native platforms
-and a tarball with the binary installation is stored on an internal
-server.
-
-Our docker build process then downloads the relevant 4 builds to
-one location, extracts them and uses the `COPY` command exactly
-like the second part of this Dockerfile.
+These builds run in parallel on separate native platforms. A tarball containing binary installation artifacts is then stored on an internal server. The Docker build process then collates the four builds into one location, extracts files and uses the `COPY` command as in the second part of this `Dockerfile`.
 
 
 ## See Also
