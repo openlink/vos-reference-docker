@@ -5,7 +5,7 @@
 #  This file is part of the OpenLink Software Virtuoso Open-Source (VOS)
 #  project.
 #
-#  Copyright (C) 2018-2025 OpenLink Software
+#  Copyright (C) 2018-2026 OpenLink Software
 #
 #  This project is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -25,9 +25,10 @@
 #
 #  Build using a specific git tag, branch or commit id
 #
-export GIT_TAG=v7.2.14
+export GIT_TAG=v7.2.17
+#export GIT_TAG=stable/7
 #export GIT_TAG=develop/7
-#export GIT_TAG=ffed4676dfa6df8932b6723d75043fcc8e1bbf61
+#export GIT_TAG=c4fd28e38e0abe9b6c9841409da29c27878d8ac5
 
 
 #
@@ -108,8 +109,12 @@ ECHO "  BUILD STARTED: `date`"
 ECHO "======================================================================"
 
 ECHO ""
+ECHO " * Pulling docker image"
+docker pull $OS_IMAGE
+
+ECHO ""
 ECHO " * Building docker image"
-ECHO "   (this may take around 20-30 minutes on current hardware)"
+ECHO "   (this may take around 15-30 minutes on current hardware)"
 time docker build \
 	 $NO_CACHE \
 	 --progress=plain \
