@@ -224,17 +224,14 @@ RUN     apt-get         update \
 #
 #  Install Virtuoso Open Source 7.x
 #
-COPY --from=vos_build "$VIRTUOSO_HOME" "$VIRTUOSO_HOME"
-COPY ./virtuoso-entrypoint.sh /
+COPY --chown=virtuoso:virtuoso --from=vos_build "$VIRTUOSO_HOME" "$VIRTUOSO_HOME"
+COPY --chown=virtuoso:virtuoso --chmod=755 ./virtuoso-entrypoint.sh /
 
 
 #
 #  Finalize installation
 #
-RUN     chown -R virtuoso:virtuoso "$VIRTUOSO_HOME"                     \
-        && chown virtuoso:virtuoso /virtuoso-entrypoint.sh              \
-        && chmod 755 /virtuoso-entrypoint.sh                            \
-        && ln -s "$VIRTUOSO_HOME"/database /database                    \
+RUN        ln -s "$VIRTUOSO_HOME"/database /database                    \
         && ln -s "$VIRTUOSO_HOME"/settings /settings                    \
         && ln -s "$VIRTUOSO_HOME"/initdb.d /initdb.d
 
