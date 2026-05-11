@@ -205,7 +205,7 @@ LABEL docker_tag="$DOCKER_TAG"
 #  Update the OS with all the runtime packages Virtuoso requires
 #
 RUN     apt-get         update \
-        && apt-get      install -y ca-certificates less openssl pwgen wget netcat-traditional nano-tiny libedit2 libldap2 \
+        && apt-get      install -y ca-certificates gosu less openssl pwgen wget netcat-traditional nano-tiny libedit2 libldap2 \
         && apt-get      autoremove -y \
         && apt-get      autoclean \
         && rm -rf       /var/lib/apt/* \

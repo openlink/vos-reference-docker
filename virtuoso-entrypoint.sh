@@ -331,6 +331,27 @@ initialize_virtuoso_directory()
 
 
 #
+#  Drop privileges to virtuoso user and start the engine
+#
+drop_privileges()
+{
+    if command -v su-exec > /dev/null 2>&1
+    then
+        exec su-exec virtuoso "$@"
+    elif command -v gosu > /dev/null 2>&1
+    then
+        exec gosu virtuoso "$@"
+    else
+        echo "No privilege drop tool available" >&2
+        exit 1
+    fi
+
+    echo "exec of privilege drop tool failed" >&2
+    exit 1
+}
+
+
+#
 #  Argument parsing
 #
 CMD=${1-"start"}
@@ -338,14 +359,17 @@ shift
 
 
 #
-#  RUn command
+#  Run commands
 #
 case "$CMD" in
     start)
         initialize_virtuoso_directory
 
+        echo "Fixing ownership of database volume"
+        chown -RL virtuoso:virtuoso /database
+
         echo "Starting the Virtuoso Server"
-        exec "$VIRTUOSO" -f
+        drop_privileges "$VIRTUOSO" -f
         ;;
 
     stop)
