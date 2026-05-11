@@ -1,6 +1,6 @@
 # Building a Virtuoso Open-Source Edition Reference Docker
 
-_Copyright (C) 2025 OpenLink Software <vos.admin@openlinksw.com>_
+_Copyright (C) 2026 OpenLink Software <vos.admin@openlinksw.com>_
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -76,7 +76,7 @@ This Docker image is using the following version of Virtuoso:
 Virtuoso Open Source Edition (Column Store) (multi threaded)
 Version 7.2.15.3241-pthreads as of May 23 2025 (bae7c13)
 Compiled for Linux (x86_64-pc-linux-gnu)
-Copyright (C) 1998-2025 OpenLink Software
+Copyright (C) 1998-2026 OpenLink Software
 ```
 
 ## Configuring the build
