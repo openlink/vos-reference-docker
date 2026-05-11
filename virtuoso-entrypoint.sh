@@ -106,7 +106,7 @@ virtuoso_ini_from_env()
     printenv | grep -i ^VIRT_ | while read -r a
     do
         setting=$(echo "$a" | cut -d'=' -f 1)
-        value=$(echo "$a" | cut -d'=' -f 2)
+        value=$(echo "$a" | cut -d'=' -f 2-)
         section=$(echo "$setting" | cut -d'_' -f 2)
         key=$(echo "$setting" | cut -d'_' -f 3-)
 
