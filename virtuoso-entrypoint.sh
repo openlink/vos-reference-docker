@@ -376,8 +376,14 @@ case "$CMD" in
         echo "Stopping the Virtuoso Server"
         if [ -f virtuoso.lck ]
         then
-            source virtuoso.lck
-            kill -INT "$VIRT_PID"
+            VIRT_PID=$(grep 'VIRT_PID=' virtuoso.lck | cut -d'=' -f2)
+            if [ -n "$VIRT_PID" ]
+            then
+                kill -INT "$VIRT_PID"
+            else
+                echo "Could not determine Virtuoso PID" >&2
+                exit 1
+            fi
         fi
         exit 0
         ;;
