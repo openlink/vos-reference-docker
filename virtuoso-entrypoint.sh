@@ -181,8 +181,7 @@ generate_initial_password() {
     #
     #  Save password which is only readable by user that starts docker image (normally root)
     #
-    echo "$DBA_PASSWORD" > /settings/dba_password
-    echo "$DAV_PASSWORD" > /settings/dav_password
+    (umask 0077 && echo "$DBA_PASSWORD" > /settings/dba_password && echo "$DAV_PASSWORD" > /settings/dav_password)
 }
 
 
