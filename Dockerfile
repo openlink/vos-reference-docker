@@ -6,7 +6,7 @@
 #  This file is part of the OpenLink Software Virtuoso Open-Source (VOS)
 #  project.
 #
-#  Copyright (C) 2018-2025 OpenLink Software
+#  Copyright (C) 2018-2026 OpenLink Software
 #
 #  This project is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -58,7 +58,7 @@ ENV MAKE_FLAGS         -j4
 #
 #  Update the repository
 #
-RUN     apt-get update && apt upgrade -y
+RUN     apt-get update && apt-get upgrade -y
 
 
 #
@@ -78,7 +78,7 @@ RUN     apt-get install -y \
                 m4 \
                 make \
                 openssl \
-                python3
+                python3-minimal
 
 
 #
@@ -161,11 +161,6 @@ RUN     git init -q . \
         && rm -f "$VIRTUOSO_HOME"/hosting/*.la
 
 
-#
-#  Copy the entrypoint script
-#
-COPY ./virtuoso-entrypoint.sh "$VIRTUOSO_HOME"/bin
-
 
 # ======================================================================
 #  Build the reference image
@@ -198,25 +193,24 @@ ENV TERM                xterm
 #
 #  Labels
 #
-LABEL   com.openlinksw.vendor="OpenLink Software"
-LABEL   maintainer="OpenLink Support <support@openlinksw.com>"
-LABEL   copyright="Copyright (C) 2025 OpenLink Software"
-LABEL   version="$DOCKER_TAG/$GIT_TAG"
-LABEL   description="OpenLink Virtuoso Open Source Edition ($GIT_TAG) -- Docker Image (Ubuntu/$TARGETPLATFORM)"
-LABEL   docker_tag="$DOCKER_TAG"
+LABEL com.openlinksw.vendor="OpenLink Software"
+LABEL maintainer="OpenLink Support <support@openlinksw.com>"
+LABEL copyright="Copyright (C) 2026 OpenLink Software"
+LABEL version="$DOCKER_TAG/$GIT_TAG"
+LABEL description="OpenLink Virtuoso Open Source Edition ($GIT_TAG) -- Docker Image (Ubuntu/$TARGETPLATFORM)"
+LABEL docker_tag="$DOCKER_TAG"
 
 
 #
 #  Update the OS with all the runtime packages Virtuoso requires
 #
 RUN     apt-get         update \
-        && apt-get      install -y ca-certificates less openssl pwgen wget netcat-traditional nano libedit2 libldap2 \
-        && apt-get      remove --purge -y \
+        && apt-get      install -y ca-certificates gosu less openssl pwgen wget netcat-traditional nano-tiny libedit2 libldap2 \
         && apt-get      autoremove -y \
         && apt-get      autoclean \
         && rm -rf       /var/lib/apt/* \
         && /usr/sbin/useradd virtuoso                                   \
-                --system                                                \
+                --uid 1001                                              \
                 --no-log-init                                           \
                 --create-home                                           \
                 --user-group                                            \
@@ -224,42 +218,50 @@ RUN     apt-get         update \
                 --shell  /bin/bash                                      \
         && mkdir -p "$VIRTUOSO_HOME"/database                           \
         && mkdir -p "$VIRTUOSO_HOME"/settings                           \
-        && mkdir -p "$VIRTUOSO_HOME"/initdb.d                           \
-        && ln -s "$VIRTUOSO_HOME"/database /database                    \
-        && ln -s "$VIRTUOSO_HOME"/settings /settings                    \
-        && ln -s "$VIRTUOSO_HOME"/initdb.d /initdb.d                    \
-        && ln -s "$VIRTUOSO_HOME"/bin/virtuoso-entrypoint.sh  /         \
-        && chown -R virtuoso:virtuoso "$VIRTUOSO_HOME"
+        && mkdir -p "$VIRTUOSO_HOME"/initdb.d
 
 
 #
 #  Install Virtuoso Open Source 7.x
 #
 COPY --from=vos_build "$VIRTUOSO_HOME" "$VIRTUOSO_HOME"
+COPY ./virtuoso-entrypoint.sh /
 
+
+#
+#  Finalize installation
+#
+RUN     chown -R virtuoso:virtuoso "$VIRTUOSO_HOME"                     \
+        && chown virtuoso:virtuoso /virtuoso-entrypoint.sh              \
+        && chmod 755 /virtuoso-entrypoint.sh                            \
+        && ln -s "$VIRTUOSO_HOME"/database /database                    \
+        && ln -s "$VIRTUOSO_HOME"/settings /settings                    \
+        && ln -s "$VIRTUOSO_HOME"/initdb.d /initdb.d
 
 #
 #  Default directory
 #
-VOLUME  [ "/database" ]
 WORKDIR /database
+VOLUME  [ "/database" ]
 
 
 #
 #  The TCP ports that Virtuoso uses
 #
-EXPOSE  1111/tcp
-EXPOSE  8890/tcp
+EXPOSE 1111/tcp
+EXPOSE 1112/tcp
+EXPOSE 8890/tcp
+EXPOSE 8891/tcp
 
 
 #
 #  Use SIGINT to gracefully stop this image
 #
-STOPSIGNAL      SIGINT
+STOPSIGNAL SIGINT
 
 
 #
-#  Wrapper
+#  Entrypoint script
 #
 ENTRYPOINT [ "/virtuoso-entrypoint.sh" ]
 

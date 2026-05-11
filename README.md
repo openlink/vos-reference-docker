@@ -1,6 +1,6 @@
 # Building a Virtuoso Open-Source Edition Reference Docker
 
-_Copyright (C) 2025 OpenLink Software <vos.admin@openlinksw.com>_
+_Copyright (C) 2026 OpenLink Software <vos.admin@openlinksw.com>_
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -51,14 +51,16 @@ $ git clone https://github.com/openlink/vos-reference-docker
 $ ./build.sh
 
 ======================================================================
-  BUILD STARTED: Wed Jan  1 10:26:08 AM UTC 2025
+  BUILD STARTED: Fri May 23 09:49:31 AM UTC 2025
 ======================================================================
+
+ * Pulling docker image
 
  * Building docker image
    (this may take around 20-30 minutes on current hardware)
 
 ======================================================================
-  BUILD FINISHED: Wed Jan  1 10:42:54 AM UTC 2025
+  BUILD FINISHED: Fri May 23 10:07:07 AM UTC 2025
 ======================================================================
 ```
 
@@ -67,15 +69,14 @@ $ ./build.sh
 ```
 $ docker run -i -t vos-reference version
 
-[vos-reference/v7.2.14]
+[vos-reference/v7.2.15]
 
 This Docker image is using the following version of Virtuoso:
 
 Virtuoso Open Source Edition (Column Store) (multi threaded)
-Version 7.2.14.3240-pthreads as of Jan  1 2025 (ffed467)
+Version 7.2.15.3241-pthreads as of May 23 2025 (bae7c13)
 Compiled for Linux (x86_64-pc-linux-gnu)
-Copyright (C) 1998-2024 OpenLink Software
-
+Copyright (C) 1998-2026 OpenLink Software
 ```
 
 ## Configuring the build
@@ -90,9 +91,9 @@ state of the VOS tree to use:
 #
 #  Build using a specific git tag, branch or commit id
 #
-export GIT_TAG=v7.2.14
-#export GIT_TAG=develop/7
-#export GIT_TAG=a1f22974f8fb8fc485e93c425c6bf727725016f3
+export GIT_TAG=v7.2.15
+#export GIT_TAG=stable/7
+#export GIT_TAG=bae7c13af8f4cb5ca0ecbaa9c4cda7f1b5f47f07
 ```
 
 The following setting is used to tag the image you build:

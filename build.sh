@@ -5,7 +5,7 @@
 #  This file is part of the OpenLink Software Virtuoso Open-Source (VOS)
 #  project.
 #
-#  Copyright (C) 2018-2025 OpenLink Software
+#  Copyright (C) 2018-2026 OpenLink Software
 #
 #  This project is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -25,9 +25,9 @@
 #
 #  Build using a specific git tag, branch or commit id
 #
-export GIT_TAG=v7.2.14
+export GIT_TAG=v7.2.17
 #export GIT_TAG=develop/7
-#export GIT_TAG=ffed4676dfa6df8932b6723d75043fcc8e1bbf61
+#export GIT_TAG=bae7c13af8f4cb5ca0ecbaa9c4cda7f1b5f47f07
 
 
 #
@@ -106,6 +106,10 @@ trap "TRAPERR" ERR
 ECHO "======================================================================"
 ECHO "  BUILD STARTED: `date`"
 ECHO "======================================================================"
+
+ECHO ""
+ECHO " * Pulling docker image"
+docker pull $OS_IMAGE
 
 ECHO ""
 ECHO " * Building docker image"
