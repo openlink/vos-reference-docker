@@ -26,8 +26,9 @@
 #  Build using a specific git tag, branch or commit id
 #
 export GIT_TAG=v7.2.17
+#export GIT_TAG=stable/7
 #export GIT_TAG=develop/7
-#export GIT_TAG=bae7c13af8f4cb5ca0ecbaa9c4cda7f1b5f47f07
+#export GIT_TAG=c4fd28e38e0abe9b6c9841409da29c27878d8ac5
 
 
 #
@@ -113,7 +114,7 @@ docker pull $OS_IMAGE
 
 ECHO ""
 ECHO " * Building docker image"
-ECHO "   (this may take around 20-30 minutes on current hardware)"
+ECHO "   (this may take around 15-30 minutes on current hardware)"
 time docker build \
 	 $NO_CACHE \
 	 --progress=plain \

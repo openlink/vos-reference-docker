@@ -1,6 +1,11 @@
 # Building a Virtuoso Open-Source Edition Reference Docker Image
-
 _Copyright (C) 2026 OpenLink Software <vos.admin@openlinksw.com>_
+
+![GitHub contributors](https://img.shields.io/github/contributors-anon/openlink/vos-reference-docker)
+![GitHub Repo stars](https://img.shields.io/github/stars/openlink/vos-reference-docker?style=flat)
+![GitHub forks](https://img.shields.io/github/forks/openlink/vos-reference-docker?style=flat)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/openlink/vos-reference-docker)
+
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -20,7 +25,7 @@ This git repository illustrates how to build a reference Virtuoso Open-Source (V
 
 This image is functionally equivalent to the version distributed via [the official OpenLink repository on Docker Hub](https://hub.docker.com/repository/docker/openlink/virtuoso-opensource-7/general).
 
-Testing covers Ubuntu 18.04 (x86_64) and macOS Big Sur 11.6 (x86_64 and Apple Silicon).
+Testing covers Ubuntu 24.04 (`x86_64`) and macOS Tahoe 26.4.1 (`Apple Silicon`).
 
 Most modern Linux distributions provide Docker packages. For Apple macOS and Microsoft Windows, Docker installers are found at the [Docker website](https://docker.com/products).
 
@@ -41,16 +46,16 @@ $ git clone https://github.com/openlink/vos-reference-docker
 $ ./build.sh
 
 ======================================================================
-  BUILD STARTED: Fri May 23 09:49:31 AM UTC 2025
+  BUILD STARTED: Mon May 11 06:15:23 PM UTC 2026
 ======================================================================
 
  * Pulling docker image
 
  * Building docker image
-   (this may take around 20-30 minutes on current hardware)
+   (this may take around 15-30 minutes on current hardware)
 
 ======================================================================
-  BUILD FINISHED: Fri May 23 10:07:07 AM UTC 2025
+  BUILD FINISHED: Mon May 11 06:31:48 PM UTC 2026
 ======================================================================
 ```
 
@@ -59,15 +64,15 @@ $ ./build.sh
 ```
 $ docker run -i -t vos-reference version
 
-[vos-reference/v7.2.15]
+[vos-reference/v7.2.17]
 
-This Docker image contains this Virtuoso version:
+This Docker image is using the following version of Virtuoso:
 
-```
 Virtuoso Open Source Edition (Column Store) (multi threaded)
-Version 7.2.15.3241-pthreads as of May 23 2025 (bae7c13)
+Version 7.2.17.3243-pthreads as of May 11 2026 (c4fd28e)
 Compiled for Linux (x86_64-pc-linux-gnu)
 Copyright (C) 1998-2026 OpenLink Software
+
 ```
 
 ## Configuring the Build
@@ -80,9 +85,9 @@ The `GIT_TAG` variable in the script specifies the VOS tree state to check out:
 #
 #  Build using a specific git tag, branch or commit ID
 #
-export GIT_TAG=v7.2.15
+export GIT_TAG=v7.2.17
 #export GIT_TAG=stable/7
-#export GIT_TAG=bae7c13af8f4cb5ca0ecbaa9c4cda7f1b5f47f07
+#export GIT_TAG=c4fd28e38e0abe9b6c9841409da29c27878d8ac5
 ```
 
 The `DOCKER_TAG` variable sets the output image tag:
@@ -101,7 +106,7 @@ Building official images with the method in this reference image requires half o
 
 OpenLink already builds and tests Virtuoso Open Source on multiple platforms to validate behavior with different operating systems, development tools and libraries. This is equivalent to the `vos-build` steps in this reference `Dockerfile`.
 
-These builds run in parallel on separate native platforms. A tarball containing binary installation artifacts is then stored on an internal server. The Docker build process then collates the four builds into one location, extracts files and uses the `COPY` command as in the second part of this `Dockerfile`.
+These builds run in parallel on separate native platforms. A tarball containing binary installation artifacts is stored on an internal server. The Docker build process then collates the four builds into one location, extracts files and uses the `COPY` command as in the second part of this `Dockerfile`.
 
 
 ## See Also
@@ -109,4 +114,4 @@ These builds run in parallel on separate native platforms. A tarball containing 
   * [Copying](COPYING.md)
   * [OpenLink repository on Docker Hub](https://hub.docker.com/repository/docker/openlink/virtuoso-opensource-7/general)
   * [Virtuoso Docker Reference Guide](https://community.openlinksw.com/t/virtuoso-enterprise-edition-reference-guide-for-docker-deployment/286)
-  * [How to Bulkload data into a Virtuoso docker instance](https://community.openlinksw.com/t/how-to-bulk-load-data-into-a-virtuoso-docker-instance/3248)
+  * [How to bulk load data into a Virtuoso docker instance](https://community.openlinksw.com/t/how-to-bulk-load-data-into-a-virtuoso-docker-instance/3248)
