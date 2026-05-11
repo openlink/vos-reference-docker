@@ -125,6 +125,7 @@ virtuoso_ini_plugins()
     i=0
     for f in "$VIRTUOSO_HOME"/hosting/*.so
     do
+        [ -f "$f" ] || continue
         bf=$(basename "$f" .so)
         i=$((i + 1))
         "$INIFILE" -f virtuoso.ini -s Plugins -k "Load$i" -v "plain, $bf"
