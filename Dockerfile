@@ -210,7 +210,7 @@ RUN     apt-get         update \
         && apt-get      autoclean \
         && rm -rf       /var/lib/apt/* \
         && /usr/sbin/useradd virtuoso                                   \
-                --system                                                \
+                --uid 1001                                              \
                 --no-log-init                                           \
                 --create-home                                           \
                 --user-group                                            \
