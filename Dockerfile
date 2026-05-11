@@ -198,12 +198,12 @@ ENV TERM                xterm
 #
 #  Labels
 #
-LABEL   com.openlinksw.vendor="OpenLink Software"
-LABEL   maintainer="OpenLink Support <support@openlinksw.com>"
-LABEL   copyright="Copyright (C) 2026 OpenLink Software"
-LABEL   version="$DOCKER_TAG/$GIT_TAG"
-LABEL   description="OpenLink Virtuoso Open Source Edition ($GIT_TAG) -- Docker Image (Ubuntu/$TARGETPLATFORM)"
-LABEL   docker_tag="$DOCKER_TAG"
+LABEL com.openlinksw.vendor="OpenLink Software"
+LABEL maintainer="OpenLink Support <support@openlinksw.com>"
+LABEL copyright="Copyright (C) 2026 OpenLink Software"
+LABEL version="$DOCKER_TAG/$GIT_TAG"
+LABEL description="OpenLink Virtuoso Open Source Edition ($GIT_TAG) -- Docker Image (Ubuntu/$TARGETPLATFORM)"
+LABEL docker_tag="$DOCKER_TAG"
 
 
 #
@@ -248,16 +248,16 @@ WORKDIR /database
 #
 #  The TCP ports that Virtuoso uses
 #
-EXPOSE  1111/tcp
-EXPOSE  1112/tcp
-EXPOSE  8890/tcp
-EXPOSE  8891/tcp
+EXPOSE 1111/tcp
+EXPOSE 1112/tcp
+EXPOSE 8890/tcp
+EXPOSE 8891/tcp
 
 
 #
 #  Use SIGINT to gracefully stop this image
 #
-STOPSIGNAL      SIGINT
+STOPSIGNAL SIGINT
 
 
 #
