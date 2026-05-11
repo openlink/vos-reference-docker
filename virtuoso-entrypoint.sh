@@ -192,16 +192,10 @@ generate_ssl_certificate() {
     #
     #  Do not regenerate if keypair already exists
     #
-    if [ -f "/database/virtuoso.crt" ]
+    if [ -f "/database/virtuoso.key" ]
     then
         return
     fi
-
-    #
-    #  Check if operator has provided a pair of SSL Certificates
-    #
-    file_env SSL_KEY    unset
-    file_env SSL_CRT    unset
 
     #
     #  Check for custom SSL keypair
@@ -224,15 +218,15 @@ generate_ssl_certificate() {
         #  Enable SSL for ODBC/JDBC
         #
         "$INIFILE" -f virtuoso.ini -s Parameters -k SSLServerPort -v 1112
-        "$INIFILE" -f virtuoso.ini -s Parameters -k SSLCertificate -v virtuoso.crt
         "$INIFILE" -f virtuoso.ini -s Parameters -k SSLPrivateKey -v virtuoso.key
+        "$INIFILE" -f virtuoso.ini -s Parameters -k SSLCertificate -v virtuoso.crt
 
         #
         #  Enable HTTPS
         #
         "$INIFILE" -f virtuoso.ini -s HTTPServer -k SSLPort -v 8891
-        "$INIFILE" -f virtuoso.ini -s HTTPServer -k SSLCertificate -v virtuoso.crt
         "$INIFILE" -f virtuoso.ini -s HTTPServer -k SSLPrivateKey -v virtuoso.key
+        "$INIFILE" -f virtuoso.ini -s HTTPServer -k SSLCertificate -v virtuoso.crt
 
     fi
 }
