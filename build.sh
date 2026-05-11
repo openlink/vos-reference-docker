@@ -25,7 +25,7 @@
 #
 #  Build using a specific git tag, branch or commit id
 #
-export GIT_TAG=v7.2.15
+export GIT_TAG=v7.2.17
 #export GIT_TAG=develop/7
 #export GIT_TAG=bae7c13af8f4cb5ca0ecbaa9c4cda7f1b5f47f07
 
