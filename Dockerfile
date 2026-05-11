@@ -161,11 +161,6 @@ RUN     git init -q . \
         && rm -f "$VIRTUOSO_HOME"/hosting/*.la
 
 
-#
-#  Copy the entrypoint script
-#
-COPY ./virtuoso-entrypoint.sh "$VIRTUOSO_HOME"/bin
-
 
 # ======================================================================
 #  Build the reference image
@@ -224,25 +219,31 @@ RUN     apt-get         update \
                 --shell  /bin/bash                                      \
         && mkdir -p "$VIRTUOSO_HOME"/database                           \
         && mkdir -p "$VIRTUOSO_HOME"/settings                           \
-        && mkdir -p "$VIRTUOSO_HOME"/initdb.d                           \
-        && ln -s "$VIRTUOSO_HOME"/database /database                    \
-        && ln -s "$VIRTUOSO_HOME"/settings /settings                    \
-        && ln -s "$VIRTUOSO_HOME"/initdb.d /initdb.d                    \
-        && ln -s "$VIRTUOSO_HOME"/bin/virtuoso-entrypoint.sh  /         \
-        && chown -R virtuoso:virtuoso "$VIRTUOSO_HOME"
+        && mkdir -p "$VIRTUOSO_HOME"/initdb.d
 
 
 #
 #  Install Virtuoso Open Source 7.x
 #
 COPY --from=vos_build "$VIRTUOSO_HOME" "$VIRTUOSO_HOME"
+COPY ./virtuoso-entrypoint.sh /
 
+
+#
+#  Finalize installation
+#
+RUN     chown -R virtuoso:virtuoso "$VIRTUOSO_HOME"                     \
+        && chown virtuoso:virtuoso /virtuoso-entrypoint.sh              \
+        && chmod 755 /virtuoso-entrypoint.sh                            \
+        && ln -s "$VIRTUOSO_HOME"/database /database                    \
+        && ln -s "$VIRTUOSO_HOME"/settings /settings                    \
+        && ln -s "$VIRTUOSO_HOME"/initdb.d /initdb.d
 
 #
 #  Default directory
 #
-VOLUME  [ "/database" ]
 WORKDIR /database
+VOLUME  [ "/database" ]
 
 
 #
@@ -261,7 +262,7 @@ STOPSIGNAL SIGINT
 
 
 #
-#  Wrapper
+#  Entrypoint script
 #
 ENTRYPOINT [ "/virtuoso-entrypoint.sh" ]
 
