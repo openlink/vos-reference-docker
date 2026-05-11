@@ -95,11 +95,13 @@ RUN     apt-get install -y \
 #  Needed for the testsuite
 #
 RUN     apt-get install -y \
+                bzip2 \
                 curl \
                 gzip \
                 tar \
                 unzip \
-                wget
+                wget \
+                zip
 
 #
 #  Download/build PROJ4
