@@ -224,19 +224,21 @@ generate_ssl_certificate() {
     #
     #  Check for custom SSL keypair
     #
-    if [ -f "$SSL_KEY_FILE" -a -f "$SSL_CRT_FILE" ]
+    if [ -f "$SSL_KEY_FILE" ] && [ -f "$SSL_CRT_FILE" ]
     then
-        cp "$SSL_KEY_FILE" /database/virtuoso.key
-        cp "$SSL_CRT_FILE" /database/virtuoso.crt
+        install -m 400 "$SSL_KEY_FILE" /database/virtuoso.key
+        install -m 400 "$SSL_CRT_FILE" /database/virtuoso.crt
     fi
 
     if [ ! -f "/database/virtuoso.key" ]
     then
         openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:secp384r1 -days 3650 -nodes \
-            -keyout virtuoso.key \
-            -out virtuoso.crt \
-            -subj "/CN=example.com"   \
-            -addext "subjectAltName=DNS:example.com,DNS:*.example.com,IP:127.0.0.1"
+            -keyout /database/virtuoso.key \
+            -out /database/virtuoso.crt \
+            -subj "/CN=virtuoso.local"   \
+            -addext "subjectAltName=DNS:localhost,DNS:virtuoso.local,IP:127.0.0.1"
+
+        chmod 400 /database/virtuoso.key /database/virtuoso.crt
 
         #
         #  Enable SSL for ODBC/JDBC
