@@ -29,9 +29,15 @@
 
 
 #
-#  Set mask for file permissions
+#  Set default mask for file permissions
 #
-umask 0027
+umask 0077
+
+
+#
+#  Set default mask in virtuoso.ini
+#
+export VIRT_PARAMETERS_CREATEMASK=0077
 
 
 #
