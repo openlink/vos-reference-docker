@@ -62,10 +62,10 @@ export ISQL="$VIRTUOSO_HOME/bin/isql"
 #
 #  Usage:
 #    file_env VAR [DEFAULT]
-
+#
 #  This checks if there is an environment variable passed when creating the docker instance, or
-#  or via a file by checking if ${VAR}_FILE environment exists and points to a readable file. If
-#  neither exists a default value will be assigned
+#  via a file by checking if ${VAR}_FILE environment variable exists and points to a readable file.
+#  If neither exists a default value will be assigned.
 #
 #  Examples:
 #    file_env "DBA_PASSWORD" "unset"
@@ -90,27 +90,22 @@ file_env() {
 
 
 #
-#  Special environment variables
-#
-
-#
-#  Allow user to set environment variables to overrule values in the default virtuoso.ini
+#  Allow user to set environment variables to overwrite values in the default virtuoso.ini
 #
 #  Environment variables should be named like:
 #
 #    VIRT_SECTION_KEY=VALUE
 #
-#  where
+#  where:
 #
-#   VIRT is common prefix to group such variables together
+#      VIRT is a common prefix to group such variables together
 #   SECTION is the name of the [section] in virtuoso.ini
-#       KEY is the name of a key within the section
+#   KEY is the name of a key within the section
 #   VALUE is the text to be written into the key
 #
-#  The variable names can be placed in either uppercase (most commonly used) or mixed case, without having to exactly match the case inside
-#  the virtuoso.ini file:
-#
-#   VIRT_Parameters_NumberOfBuffers is same as VIRT_PARAMETERS_NUMBEROFBUFFERS
+#  The variable names can be placed in either uppercase (most commonly used) or mixed case,
+#  without having to exactly match the case inside the virtuoso.ini file,
+#  so VIRT_Parameters_NumberOfBuffers is the same as VIRT_PARAMETERS_NUMBEROFBUFFERS.
 #
 #  Examples:
 #       VIRT_PARAMETERS_NUMBEROFBUFFERS=1000000
@@ -219,7 +214,7 @@ generate_initial_password() {
 
 
 #
-#  Generate selfsigned SSL Certificate
+#  Generate self-signed SSL Certificate
 #
 generate_ssl_certificate() {
     #
