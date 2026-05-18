@@ -25,7 +25,7 @@
 #
 
 #set -x
-#set -Eeo pipefail
+set -Eeuo pipefail
 
 
 #
@@ -46,6 +46,15 @@ export VIRT_PARAMETERS_CREATEMASK=0077
 export VIRTUOSO="$VIRTUOSO_HOME/bin/virtuoso-t"
 export INIFILE="$VIRTUOSO_HOME/bin/inifile"
 export ISQL="$VIRTUOSO_HOME/bin/isql"
+
+
+#
+#  Default optional env vars to empty so `set -u` is happy
+#
+: "${VIRTUOSO_INI_FILE:=}"
+: "${SSL_KEY_FILE:=}"
+: "${SSL_CRT_FILE:=}"
+
 
 
 #
@@ -109,7 +118,7 @@ file_env() {
 #
 virtuoso_ini_from_env()
 {
-    printenv | grep -i ^VIRT_ | while read -r a
+    printenv | { grep -i ^VIRT_ || true; } | while read -r a
     do
         setting=$(echo "$a" | cut -d'=' -f 1)
         value=$(echo "$a" | cut -d'=' -f 2-)
@@ -357,7 +366,7 @@ initialize_virtuoso_directory()
 #  Argument parsing
 #
 CMD=${1-"start"}
-shift
+shift || true
 
 
 #
@@ -380,7 +389,7 @@ case "$CMD" in
         echo "Stopping the Virtuoso Server"
         if [ -f virtuoso.lck ]
         then
-            VIRT_PID=$(grep 'VIRT_PID=' virtuoso.lck | cut -d'=' -f2)
+            VIRT_PID=$(grep 'VIRT_PID=' virtuoso.lck | cut -d'=' -f2) || true
             if [ -n "$VIRT_PID" ]
             then
                 kill -INT "$VIRT_PID"
@@ -388,6 +397,7 @@ case "$CMD" in
                 echo "Could not determine Virtuoso PID" >&2
                 exit 1
             fi
+            unset VIRT_PID
         fi
         exit 0
         ;;
@@ -398,7 +408,7 @@ case "$CMD" in
         echo ""
         echo "This Docker image is using the following version of Virtuoso:"
         echo ""
-        virtuoso-t -? 2>&1 | head -5
+        virtuoso-t -? 2>&1 | head -5 || true
         exit 0
         ;;
 
