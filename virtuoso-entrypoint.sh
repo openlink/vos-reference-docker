@@ -116,7 +116,7 @@ virtuoso_ini_from_env()
         section=$(echo "$setting" | cut -d'_' -f 2)
         key=$(echo "$setting" | cut -d'_' -f 3-)
 
-        "$INIFILE" +inifile virtuoso.ini +section "$section" +key "$key" +value "$value"
+        inifile +inifile virtuoso.ini +section "$section" +key "$key" +value "$value"
     done
 }
 
@@ -126,15 +126,15 @@ virtuoso_ini_from_env()
 #
 virtuoso_ini_plugins()
 {
-    "$INIFILE" -f virtuoso.ini -s Plugins -k - -v -
-    "$INIFILE" -f virtuoso.ini -s Plugins -k LoadPath -v ../hosting
+    inifile -f virtuoso.ini -s Plugins -k - -v -
+    inifile -f virtuoso.ini -s Plugins -k LoadPath -v ../hosting
     i=0
     for f in "$VIRTUOSO_HOME"/hosting/*.so
     do
         [ -f "$f" ] || continue
         bf=$(basename "$f" .so)
         i=$((i + 1))
-        "$INIFILE" -f virtuoso.ini -s Plugins -k "Load$i" -v "plain, $bf"
+        inifile -f virtuoso.ini -s Plugins -k "Load$i" -v "plain, $bf"
     done
 }
 
@@ -157,17 +157,17 @@ generate_initial_password() {
         #
         #  Special case for AMI installations
         #
-        PW=$(/usr/bin/curl --location --fail --connect-timeout 1 http://169.254.169.254/latest/meta-data/instance-id 2>/dev/null)
+        PW=$(curl --location --fail --connect-timeout 1 http://169.254.169.254/latest/meta-data/instance-id 2>/dev/null)
         DBA_PASSWORD=${PW:-unset}
     fi
     if test "$DBA_PASSWORD" = "unset"
         then
-        PW=$(/usr/bin/pwgen -v -s 8 1 2>/dev/null)
+        PW=$(pwgen -v -s 8 1 2>/dev/null)
         DBA_PASSWORD=${PW:-unset}
         fi
     if test "$DBA_PASSWORD" = "unset"
     then
-        PW=$(/usr/bin/openssl rand -base64 6 2>/dev/null)
+        PW=$(openssl rand -base64 6 2>/dev/null)
         DBA_PASSWORD=${PW:-unset}
     fi
     if test "$DBA_PASSWORD" = "unset"
@@ -223,17 +223,16 @@ generate_ssl_certificate() {
         #
         #  Enable SSL for ODBC/JDBC
         #
-        "$INIFILE" -f virtuoso.ini -s Parameters -k SSLServerPort -v 1112
-        "$INIFILE" -f virtuoso.ini -s Parameters -k SSLPrivateKey -v virtuoso.key
-        "$INIFILE" -f virtuoso.ini -s Parameters -k SSLCertificate -v virtuoso.crt
+        inifile -f virtuoso.ini -s Parameters -k SSLServerPort -v 1112
+        inifile -f virtuoso.ini -s Parameters -k SSLPrivateKey -v virtuoso.key
+        inifile -f virtuoso.ini -s Parameters -k SSLCertificate -v virtuoso.crt
 
         #
         #  Enable HTTPS
         #
-        "$INIFILE" -f virtuoso.ini -s HTTPServer -k SSLPort -v 8891
-        "$INIFILE" -f virtuoso.ini -s HTTPServer -k SSLPrivateKey -v virtuoso.key
-        "$INIFILE" -f virtuoso.ini -s HTTPServer -k SSLCertificate -v virtuoso.crt
-
+        inifile -f virtuoso.ini -s HTTPServer -k SSLPort -v 8891
+        inifile -f virtuoso.ini -s HTTPServer -k SSLPrivateKey -v virtuoso.key
+        inifile -f virtuoso.ini -s HTTPServer -k SSLCertificate -v virtuoso.crt
     fi
 }
 
@@ -283,7 +282,7 @@ initialize_virtuoso_directory()
         #  Create an initial database
         #
         echo "Creating initial database"
-        $VIRTUOSO -f +checkpoint-only
+        virtuoso-t -f +checkpoint-only
 
         #
         #  Process any initdb.d scripts
@@ -307,7 +306,7 @@ initialize_virtuoso_directory()
                   echo ""
                   echo "* Running SQL script: [$file]"
                   cp "$file" autoexec.isql
-                  "$VIRTUOSO" -f +checkpoint-only
+                  virtuoso-t -f +checkpoint-only
                   if test $? -ne 0
                   then
                       echo "** SQL SCRIPT FAILED **"
@@ -325,7 +324,9 @@ initialize_virtuoso_directory()
         #  Set the initial password
         #
         echo "Setting passwords"
-        "$VIRTUOSO" -f +checkpoint-only +pwdold dba +pwddba "$DBA_PASSWORD" +pwddav "$DAV_PASSWORD"
+        virtuoso-t -f +checkpoint-only +pwdold dba \
+            +pwddba "$(< /settings/dba_password )" \
+            +pwddav "$(< /settings/dav_password )"
     fi
 }
 
@@ -394,19 +395,19 @@ case "$CMD" in
         echo ""
         echo "This Docker image is using the following version of Virtuoso:"
         echo ""
-        "$VIRTUOSO" -? 2>&1 | head -5
+        virtuoso-t -? 2>&1 | head -5
         exit 0
         ;;
 
     isql)
-        exec "$ISQL" localhost:1111 dba dba "$@"
+        exec isql localhost:1111 dba dba "$@"
         echo "exec of [$ISQL] failed" >&2
         exit 1
         ;;
 
     bash)
-        exec /bin/bash
-        echo "exec of [/bin/bash] failed" >&2
+        exec bash
+        echo "exec of [bash] failed" >&2
         exit 1
         ;;
 
