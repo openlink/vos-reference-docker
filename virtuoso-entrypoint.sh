@@ -310,26 +310,28 @@ initialize_virtuoso_directory()
         echo "Running initialization scripts"
         for file in "$VIRTUOSO_HOME"/initdb.d/*
         do
+            [ -f "$file" ] || continue
             scriptname=$(basename "$file")
             case "$scriptname" in
               *.sh)
                   echo ""
                   echo "* Running SHELL script: [$scriptname]"
-                  /bin/sh "$file"
-                  if test $? -ne 0
+                  if ! bash "$file"
                   then
-                      echo "** SHELL SCRIPT FAILED **"
+                      echo "** SHELL SCRIPT FAILED **" >&2
+                      exit 1
                   fi
                   ;;
 
               *.sql)
                   echo ""
-                  echo "* Running SQL script: [$file]"
+                  echo "* Running SQL script: [$scriptname]"
                   cp "$file" autoexec.isql
-                  virtuoso-t -f +checkpoint-only
-                  if test $? -ne 0
+                  if ! virtuoso-t -f +checkpoint-only
                   then
-                      echo "** SQL SCRIPT FAILED **"
+                      rm -f autoexec.isql
+                      echo "** SQL SCRIPT FAILED **" >&2
+                      exit 1
                   fi
                   rm -f autoexec.isql
                   ;;
