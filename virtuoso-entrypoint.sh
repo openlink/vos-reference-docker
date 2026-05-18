@@ -155,25 +155,37 @@ generate_initial_password() {
     if test "$DBA_PASSWORD" = "instance-id"
     then
         #
-        #  Special case for AMI installations
+        #  Special case for AMI installations - using IMDSv2 (token-backed)
         #
-        PW=$(curl --location --fail --connect-timeout 1 http://169.254.169.254/latest/meta-data/instance-id 2>/dev/null)
+        IMDS_TOKEN=$(curl --silent --fail --connect-timeout 1 \
+            -X PUT "http://169.254.169.254/latest/api/token" \
+            -H "X-aws-ec2-metadata-token-ttl-seconds: 60" 2>/dev/null || true)
+        if [ -n "$IMDS_TOKEN" ]
+        then
+            PW=$(curl --silent --fail --connect-timeout 1 \
+                -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" \
+                "http://169.254.169.254/latest/meta-data/instance-id" 2>/dev/null || true)
+        fi
+        unset IMDS_TOKEN
         DBA_PASSWORD=${PW:-unset}
     fi
+
     if test "$DBA_PASSWORD" = "unset"
         then
-        PW=$(pwgen -v -s 8 1 2>/dev/null)
+        PW=$(pwgen -s -B 16 1 2>/dev/null || true)
         DBA_PASSWORD=${PW:-unset}
-        fi
+    fi
+
     if test "$DBA_PASSWORD" = "unset"
     then
-        PW=$(openssl rand -base64 6 2>/dev/null)
+        PW=$(openssl rand -base64 12 2>/dev/null || true)
         DBA_PASSWORD=${PW:-unset}
     fi
+
     if test "$DBA_PASSWORD" = "unset"
-        then
-        val=$(( 0$RANDOM % 1000))
-        DBA_PASSWORD="docker-$val"
+    then
+        echo "error: failed to generate a secure password, install pwgen or ensure openssl is available" >&2
+        exit 1
     fi
 
     #
@@ -185,9 +197,15 @@ generate_initial_password() {
     fi
 
     #
-    #  Save password which is only readable by user that starts docker image (normally root)
+    #  Save passwords that are only readable by the user that starts the docker image
     #
-    (umask 0077 && echo "$DBA_PASSWORD" > /settings/dba_password && echo "$DAV_PASSWORD" > /settings/dav_password)
+    echo "$DBA_PASSWORD" > /settings/dba_password
+    chmod 400 /settings/dba_password
+
+    echo "$DAV_PASSWORD" > /settings/dav_password
+    chmod 400 /settings/dav_password
+
+    unset DBA_PASSWORD DBA_PASSWORD_FILE DAV_PASSWORD DAV_PASSWORD_FILE
 }
 
 
