@@ -367,7 +367,7 @@ case "$CMD" in
         initialize_virtuoso_directory
 
         echo "Fixing ownership of database volume"
-        chown -RL virtuoso:virtuoso /database
+        chown -R virtuoso:virtuoso "$VIRTUOSO_HOME"/database/ || echo "warning: failed to fix ownership of database volume" >&2
 
         echo "Starting the Virtuoso Server"
         drop_privileges "$VIRTUOSO" -f

@@ -227,30 +227,33 @@ RUN        apt-get update \
         && apt-get autoclean \
         && rm -rf /var/lib/apt/lists/* /var/log/* /tmp/* /var /tmp/* \
         && /usr/sbin/useradd virtuoso \
-                --uid 1001 \
                 --no-log-init \
                 --create-home \
                 --user-group \
                 --home-dir "$VIRTUOSO_HOME" \
-                --shell  /bin/bash \
-        && mkdir -p "$VIRTUOSO_HOME"/database \
-        && mkdir -p "$VIRTUOSO_HOME"/settings \
-        && mkdir -p "$VIRTUOSO_HOME"/initdb.d
+                --shell /sbin/nologin \
+        && /usr/sbin/groupmod --gid 65532 virtuoso \
+        && /usr/sbin/usermod  --uid 65532 virtuoso
 
 
 #
 #  Install Virtuoso Open Source 7.x
 #
-COPY --chown=virtuoso:virtuoso --from=vos_build "$VIRTUOSO_HOME" "$VIRTUOSO_HOME"
-COPY --chown=virtuoso:virtuoso --chmod=755 ./virtuoso-entrypoint.sh /
+COPY --chown=root:root --from=vos_build "$VIRTUOSO_HOME" "$VIRTUOSO_HOME"
+COPY --chown=root:root --chmod=755 ./virtuoso-entrypoint.sh /
 
 
 #
 #  Finalize installation
 #
-RUN        ln -s "$VIRTUOSO_HOME"/database /database \
+RUN        mkdir -p "$VIRTUOSO_HOME"/database \
+        && mkdir -p "$VIRTUOSO_HOME"/settings \
+        && mkdir -p "$VIRTUOSO_HOME"/initdb.d \
+        && chown -R virtuoso:virtuoso "$VIRTUOSO_HOME/database" \
+        && ln -s "$VIRTUOSO_HOME"/database /database \
         && ln -s "$VIRTUOSO_HOME"/settings /settings \
         && ln -s "$VIRTUOSO_HOME"/initdb.d /initdb.d
+
 
 #
 #  Default directory
