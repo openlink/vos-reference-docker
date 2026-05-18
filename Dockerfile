@@ -195,6 +195,7 @@ ENV VIRTUOSO_HOME=/opt/virtuoso-opensource
 ENV PATH=$VIRTUOSO_HOME/bin:$PATH
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM=xterm
+ENV GOSU=gosu
 
 
 #

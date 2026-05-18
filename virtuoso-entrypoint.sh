@@ -316,7 +316,7 @@ initialize_virtuoso_directory()
               *.sh)
                   echo ""
                   echo "* Running SHELL script: [$scriptname]"
-                  if ! bash "$file"
+                  if ! $GOSU virtuoso bash "$file"
                   then
                       echo "** SHELL SCRIPT FAILED **" >&2
                       exit 1
@@ -354,27 +354,6 @@ initialize_virtuoso_directory()
 
 
 #
-#  Drop privileges to virtuoso user and start the engine
-#
-drop_privileges()
-{
-    if command -v su-exec > /dev/null 2>&1
-    then
-        exec su-exec virtuoso "$@"
-    elif command -v gosu > /dev/null 2>&1
-    then
-        exec gosu virtuoso "$@"
-    else
-        echo "No privilege drop tool available" >&2
-        exit 1
-    fi
-
-    echo "exec of privilege drop tool failed" >&2
-    exit 1
-}
-
-
-#
 #  Argument parsing
 #
 CMD=${1-"start"}
@@ -392,7 +371,9 @@ case "$CMD" in
         chown -R virtuoso:virtuoso "$VIRTUOSO_HOME"/database/ || echo "warning: failed to fix ownership of database volume" >&2
 
         echo "Starting the Virtuoso Server"
-        drop_privileges "$VIRTUOSO" -f
+        exec $GOSU virtuoso virtuoso-t -f
+        echo "exec of $GOSU failed" >&2
+        exit 1
         ;;
 
     stop)
