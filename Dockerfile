@@ -214,14 +214,14 @@ LABEL docker_tag="$DOCKER_TAG"
 RUN        apt-get update \
         && apt-get install -y --no-install-recommends \
                 ca-certificates \
+                curl \
                 gosu \
-                less \
                 libedit2 \
                 libldap2 \
-                nano-tiny \
                 netcat-traditional \
                 openssl \
                 pwgen \
+                vim-tiny \
                 wget \
         && apt-get autoremove -y \
         && apt-get autoclean \
