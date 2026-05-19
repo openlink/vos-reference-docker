@@ -25,13 +25,19 @@
 #
 
 #set -x
-#set -Eeo pipefail
+set -Eeuo pipefail
 
 
 #
-#  Set mask for file permissions
+#  Set default mask for file permissions
 #
-umask 0027
+umask 0077
+
+
+#
+#  Set default mask in virtuoso.ini
+#
+export VIRT_PARAMETERS_CREATEMASK=0077
 
 
 #
@@ -43,14 +49,23 @@ export ISQL="$VIRTUOSO_HOME/bin/isql"
 
 
 #
+#  Default optional env vars to empty so `set -u` is happy
+#
+: "${VIRTUOSO_INI_FILE:=}"
+: "${SSL_KEY_FILE:=}"
+: "${SSL_CRT_FILE:=}"
+
+
+
+#
 #  Get information from environment or file
 #
 #  Usage:
 #    file_env VAR [DEFAULT]
-
+#
 #  This checks if there is an environment variable passed when creating the docker instance, or
-#  or via a file by checking if ${VAR}_FILE environment exists and points to a readable file. If
-#  neither exists a default value will be assigned
+#  via a file by checking if ${VAR}_FILE environment variable exists and points to a readable file.
+#  If neither exists a default value will be assigned.
 #
 #  Examples:
 #    file_env "DBA_PASSWORD" "unset"
@@ -75,27 +90,22 @@ file_env() {
 
 
 #
-#  Special environment variables
-#
-
-#
-#  Allow user to set environment variables to overrule values in the default virtuoso.ini
+#  Allow user to set environment variables to overwrite values in the default virtuoso.ini
 #
 #  Environment variables should be named like:
 #
 #    VIRT_SECTION_KEY=VALUE
 #
-#  where
+#  where:
 #
-#   VIRT is common prefix to group such variables together
+#      VIRT is a common prefix to group such variables together
 #   SECTION is the name of the [section] in virtuoso.ini
-#       KEY is the name of a key within the section
+#   KEY is the name of a key within the section
 #   VALUE is the text to be written into the key
 #
-#  The variable names can be placed in either uppercase (most commonly used) or mixed case, without having to exactly match the case inside
-#  the virtuoso.ini file:
-#
-#   VIRT_Parameters_NumberOfBuffers is same as VIRT_PARAMETERS_NUMBEROFBUFFERS
+#  The variable names can be placed in either uppercase (most commonly used) or mixed case,
+#  without having to exactly match the case inside the virtuoso.ini file,
+#  so VIRT_Parameters_NumberOfBuffers is the same as VIRT_PARAMETERS_NUMBEROFBUFFERS.
 #
 #  Examples:
 #       VIRT_PARAMETERS_NUMBEROFBUFFERS=1000000
@@ -103,14 +113,14 @@ file_env() {
 #
 virtuoso_ini_from_env()
 {
-    printenv | grep -i ^VIRT_ | while read -r a
+    printenv | { grep -i ^VIRT_ || true; } | while read -r a
     do
         setting=$(echo "$a" | cut -d'=' -f 1)
         value=$(echo "$a" | cut -d'=' -f 2-)
         section=$(echo "$setting" | cut -d'_' -f 2)
         key=$(echo "$setting" | cut -d'_' -f 3-)
 
-        "$INIFILE" +inifile virtuoso.ini +section "$section" +key "$key" +value "$value"
+        inifile +inifile virtuoso.ini +section "$section" +key "$key" +value "$value"
     done
 }
 
@@ -120,15 +130,15 @@ virtuoso_ini_from_env()
 #
 virtuoso_ini_plugins()
 {
-    "$INIFILE" -f virtuoso.ini -s Plugins -k - -v -
-    "$INIFILE" -f virtuoso.ini -s Plugins -k LoadPath -v ../hosting
+    inifile -f virtuoso.ini -s Plugins -k - -v -
+    inifile -f virtuoso.ini -s Plugins -k LoadPath -v ../hosting
     i=0
     for f in "$VIRTUOSO_HOME"/hosting/*.so
     do
         [ -f "$f" ] || continue
         bf=$(basename "$f" .so)
         i=$((i + 1))
-        "$INIFILE" -f virtuoso.ini -s Plugins -k "Load$i" -v "plain, $bf"
+        inifile -f virtuoso.ini -s Plugins -k "Load$i" -v "plain, $bf"
     done
 }
 
@@ -149,25 +159,37 @@ generate_initial_password() {
     if test "$DBA_PASSWORD" = "instance-id"
     then
         #
-        #  Special case for AMI installations
+        #  Special case for AMI installations - using IMDSv2 (token-backed)
         #
-        PW=$(/usr/bin/curl --location --fail --connect-timeout 1 http://169.254.169.254/latest/meta-data/instance-id 2>/dev/null)
+        IMDS_TOKEN=$(curl --silent --fail --connect-timeout 1 \
+            -X PUT "http://169.254.169.254/latest/api/token" \
+            -H "X-aws-ec2-metadata-token-ttl-seconds: 60" 2>/dev/null || true)
+        if [ -n "$IMDS_TOKEN" ]
+        then
+            PW=$(curl --silent --fail --connect-timeout 1 \
+                -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" \
+                "http://169.254.169.254/latest/meta-data/instance-id" 2>/dev/null || true)
+        fi
+        unset IMDS_TOKEN
         DBA_PASSWORD=${PW:-unset}
     fi
+
     if test "$DBA_PASSWORD" = "unset"
         then
-        PW=$(/usr/bin/pwgen -v -s 8 1 2>/dev/null)
+        PW=$(pwgen -s -B 16 1 2>/dev/null || true)
         DBA_PASSWORD=${PW:-unset}
-        fi
+    fi
+
     if test "$DBA_PASSWORD" = "unset"
     then
-        PW=$(/usr/bin/openssl rand -base64 6 2>/dev/null)
+        PW=$(openssl rand -base64 12 2>/dev/null || true)
         DBA_PASSWORD=${PW:-unset}
     fi
+
     if test "$DBA_PASSWORD" = "unset"
-        then
-        val=$(( 0$RANDOM % 1000))
-        DBA_PASSWORD="docker-$val"
+    then
+        echo "error: failed to generate a secure password, install pwgen or ensure openssl is available" >&2
+        exit 1
     fi
 
     #
@@ -179,14 +201,20 @@ generate_initial_password() {
     fi
 
     #
-    #  Save password which is only readable by user that starts docker image (normally root)
+    #  Save passwords that are only readable by the user that starts the docker image
     #
-    (umask 0077 && echo "$DBA_PASSWORD" > /settings/dba_password && echo "$DAV_PASSWORD" > /settings/dav_password)
+    echo "$DBA_PASSWORD" > /settings/dba_password
+    chmod 400 /settings/dba_password
+
+    echo "$DAV_PASSWORD" > /settings/dav_password
+    chmod 400 /settings/dav_password
+
+    unset DBA_PASSWORD DBA_PASSWORD_FILE DAV_PASSWORD DAV_PASSWORD_FILE
 }
 
 
 #
-#  Generate selfsigned SSL Certificate
+#  Generate self-signed SSL Certificate
 #
 generate_ssl_certificate() {
     #
@@ -200,34 +228,35 @@ generate_ssl_certificate() {
     #
     #  Check for custom SSL keypair
     #
-    if [ -f "$SSL_KEY_FILE" -a -f "$SSL_CRT_FILE" ]
+    if [ -f "$SSL_KEY_FILE" ] && [ -f "$SSL_CRT_FILE" ]
     then
-        cp "$SSL_KEY_FILE" /database/virtuoso.key
-        cp "$SSL_CRT_FILE" /database/virtuoso.crt
+        install -m 400 "$SSL_KEY_FILE" /database/virtuoso.key
+        install -m 400 "$SSL_CRT_FILE" /database/virtuoso.crt
     fi
 
     if [ ! -f "/database/virtuoso.key" ]
     then
         openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:secp384r1 -days 3650 -nodes \
-            -keyout virtuoso.key \
-            -out virtuoso.crt \
-            -subj "/CN=example.com"   \
-            -addext "subjectAltName=DNS:example.com,DNS:*.example.com,IP:127.0.0.1"
+            -keyout /database/virtuoso.key \
+            -out /database/virtuoso.crt \
+            -subj "/CN=virtuoso.local"   \
+            -addext "subjectAltName=DNS:localhost,DNS:virtuoso.local,IP:127.0.0.1"
+
+        chmod 400 /database/virtuoso.key /database/virtuoso.crt
 
         #
         #  Enable SSL for ODBC/JDBC
         #
-        "$INIFILE" -f virtuoso.ini -s Parameters -k SSLServerPort -v 1112
-        "$INIFILE" -f virtuoso.ini -s Parameters -k SSLPrivateKey -v virtuoso.key
-        "$INIFILE" -f virtuoso.ini -s Parameters -k SSLCertificate -v virtuoso.crt
+        inifile -f virtuoso.ini -s Parameters -k SSLServerPort -v 1112
+        inifile -f virtuoso.ini -s Parameters -k SSLPrivateKey -v virtuoso.key
+        inifile -f virtuoso.ini -s Parameters -k SSLCertificate -v virtuoso.crt
 
         #
         #  Enable HTTPS
         #
-        "$INIFILE" -f virtuoso.ini -s HTTPServer -k SSLPort -v 8891
-        "$INIFILE" -f virtuoso.ini -s HTTPServer -k SSLPrivateKey -v virtuoso.key
-        "$INIFILE" -f virtuoso.ini -s HTTPServer -k SSLCertificate -v virtuoso.crt
-
+        inifile -f virtuoso.ini -s HTTPServer -k SSLPort -v 8891
+        inifile -f virtuoso.ini -s HTTPServer -k SSLPrivateKey -v virtuoso.key
+        inifile -f virtuoso.ini -s HTTPServer -k SSLCertificate -v virtuoso.crt
     fi
 }
 
@@ -277,7 +306,7 @@ initialize_virtuoso_directory()
         #  Create an initial database
         #
         echo "Creating initial database"
-        $VIRTUOSO -f +checkpoint-only
+        virtuoso-t -f +checkpoint-only
 
         #
         #  Process any initdb.d scripts
@@ -285,26 +314,28 @@ initialize_virtuoso_directory()
         echo "Running initialization scripts"
         for file in "$VIRTUOSO_HOME"/initdb.d/*
         do
+            [ -f "$file" ] || continue
             scriptname=$(basename "$file")
             case "$scriptname" in
               *.sh)
                   echo ""
                   echo "* Running SHELL script: [$scriptname]"
-                  /bin/sh "$file"
-                  if test $? -ne 0
+                  if ! $GOSU virtuoso bash "$file"
                   then
-                      echo "** SHELL SCRIPT FAILED **"
+                      echo "** SHELL SCRIPT FAILED **" >&2
+                      exit 1
                   fi
                   ;;
 
               *.sql)
                   echo ""
-                  echo "* Running SQL script: [$file]"
+                  echo "* Running SQL script: [$scriptname]"
                   cp "$file" autoexec.isql
-                  "$VIRTUOSO" -f +checkpoint-only
-                  if test $? -ne 0
+                  if ! virtuoso-t -f +checkpoint-only
                   then
-                      echo "** SQL SCRIPT FAILED **"
+                      rm -f autoexec.isql
+                      echo "** SQL SCRIPT FAILED **" >&2
+                      exit 1
                   fi
                   rm -f autoexec.isql
                   ;;
@@ -319,29 +350,10 @@ initialize_virtuoso_directory()
         #  Set the initial password
         #
         echo "Setting passwords"
-        "$VIRTUOSO" -f +checkpoint-only +pwdold dba +pwddba "$DBA_PASSWORD" +pwddav "$DAV_PASSWORD"
+        virtuoso-t -f +checkpoint-only +pwdold dba \
+            +pwddba "$(< /settings/dba_password )" \
+            +pwddav "$(< /settings/dav_password )"
     fi
-}
-
-
-#
-#  Drop privileges to virtuoso user and start the engine
-#
-drop_privileges()
-{
-    if command -v su-exec > /dev/null 2>&1
-    then
-        exec su-exec virtuoso "$@"
-    elif command -v gosu > /dev/null 2>&1
-    then
-        exec gosu virtuoso "$@"
-    else
-        echo "No privilege drop tool available" >&2
-        exit 1
-    fi
-
-    echo "exec of privilege drop tool failed" >&2
-    exit 1
 }
 
 
@@ -349,7 +361,7 @@ drop_privileges()
 #  Argument parsing
 #
 CMD=${1-"start"}
-shift
+shift || true
 
 
 #
@@ -360,17 +372,19 @@ case "$CMD" in
         initialize_virtuoso_directory
 
         echo "Fixing ownership of database volume"
-        chown -RL virtuoso:virtuoso /database
+        chown -R virtuoso:virtuoso "$VIRTUOSO_HOME"/database/ || echo "warning: failed to fix ownership of database volume" >&2
 
         echo "Starting the Virtuoso Server"
-        drop_privileges "$VIRTUOSO" -f
+        exec $GOSU virtuoso virtuoso-t -f
+        echo "exec of $GOSU failed" >&2
+        exit 1
         ;;
 
     stop)
         echo "Stopping the Virtuoso Server"
         if [ -f virtuoso.lck ]
         then
-            VIRT_PID=$(grep 'VIRT_PID=' virtuoso.lck | cut -d'=' -f2)
+            VIRT_PID=$(grep 'VIRT_PID=' virtuoso.lck | cut -d'=' -f2) || true
             if [ -n "$VIRT_PID" ]
             then
                 kill -INT "$VIRT_PID"
@@ -378,6 +392,7 @@ case "$CMD" in
                 echo "Could not determine Virtuoso PID" >&2
                 exit 1
             fi
+            unset VIRT_PID
         fi
         exit 0
         ;;
@@ -388,19 +403,19 @@ case "$CMD" in
         echo ""
         echo "This Docker image is using the following version of Virtuoso:"
         echo ""
-        "$VIRTUOSO" -? 2>&1 | head -5
+        virtuoso-t -? 2>&1 | head -5 || true
         exit 0
         ;;
 
     isql)
-        exec "$ISQL" localhost:1111 dba dba "$@"
+        exec isql localhost:1111 dba dba "$@"
         echo "exec of [$ISQL] failed" >&2
         exit 1
         ;;
 
     bash)
-        exec /bin/bash
-        echo "exec of [/bin/bash] failed" >&2
+        exec bash
+        echo "exec of [bash] failed" >&2
         exit 1
         ;;
 

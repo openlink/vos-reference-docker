@@ -32,7 +32,7 @@ ARG OS_IMAGE=ubuntu:noble
 # ======================================================================
 #  Setup the development image for building VOS
 # ======================================================================
-FROM $OS_IMAGE as vos_build
+FROM $OS_IMAGE AS vos_build
 
 
 #  From build.sh
@@ -50,10 +50,11 @@ ENV GEOS_VERSION=3.5.1
 #
 #  Build environment
 #
-ENV VIRTUOSO_HOME	/opt/virtuoso-opensource
-ENV LC_ALL		C.UTF-8
-ENV DEBIAN_FRONTEND	noninteractive
-ENV MAKE_FLAGS         -j4
+ENV VIRTUOSO_HOME=/opt/virtuoso-opensource
+ENV LC_ALL=C.UTF-8
+ENV DEBIAN_FRONTEND=noninteractive
+ENV MAKE_FLAGS=-j4
+
 
 #
 #  Update the repository
@@ -65,43 +66,45 @@ RUN     apt-get update && apt-get upgrade -y
 #  Development tools
 #
 RUN     apt-get install -y \
-                build-essential \
-                autoconf \
-                automake \
-                bison \
-                flex \
-                gawk \
-                git \
-                gperf \
-                iproute2 \
-                libtool \
-                m4 \
-                make \
-                openssl \
-                python3-minimal
+            build-essential \
+            autoconf \
+            automake \
+            bison \
+            flex \
+            gawk \
+            git \
+            gperf \
+            iproute2 \
+            libtool \
+            m4 \
+            make \
+            openssl \
+            python3-minimal
 
 
 #
 #  Development libraries
 #
 RUN     apt-get install -y \
-                libbz2-dev \
-                libedit-dev \
-                libldap2-dev \
-                libssl-dev \
-                lzma-dev 
+            libbz2-dev \
+            libedit-dev \
+            libldap2-dev \
+            libssl-dev \
+            lzma-dev 
+
 
 #
 #  Needed for the testsuite
 #
 RUN     apt-get install -y \
-                bzip2 \
-                curl \
-                gzip \
-                tar \
-                unzip \
-                wget \
-                zip
+            bzip2 \
+            curl \
+            gzip \
+            tar \
+            unzip \
+            wget \
+            zip
+
 
 #
 #  Download/build PROJ4
@@ -136,10 +139,11 @@ RUN    curl "https://download.osgeo.org/geos/geos-$GEOS_VERSION.tar.bz2" | tar -
 #  Workdir for the build
 #
 WORKDIR /src/virtuoso-opensource
-RUN     git init -q . \
-	&& git remote add origin "https://github.com/openlink/virtuoso-opensource" \
-	&& git fetch -q --depth 1 origin "$GIT_TAG" \
-	&& git checkout -q FETCH_HEAD \
+
+RUN        git init -q . \
+        && git remote add origin "https://github.com/openlink/virtuoso-opensource" \
+        && git fetch -q --depth 1 origin "$GIT_TAG" \
+        && git checkout -q FETCH_HEAD \
         && ./autogen.sh \
         && ./configure \
                 --prefix="$VIRTUOSO_HOME" \
@@ -186,10 +190,12 @@ ARG TARGETPLATFORM
 #
 #  Global environment for the docker image
 #
-ENV DOCKER_TAG		"$DOCKER_TAG/$GIT_TAG"
-ENV VIRTUOSO_HOME       /opt/virtuoso-opensource
-ENV PATH                $VIRTUOSO_HOME/bin:$PATH
-ENV TERM                xterm
+ENV DOCKER_TAG="$DOCKER_TAG/$GIT_TAG"
+ENV VIRTUOSO_HOME=/opt/virtuoso-opensource
+ENV PATH=$VIRTUOSO_HOME/bin:$PATH
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TERM=xterm
+ENV GOSU=gosu
 
 
 #
@@ -206,36 +212,49 @@ LABEL docker_tag="$DOCKER_TAG"
 #
 #  Update the OS with all the runtime packages Virtuoso requires
 #
-RUN     apt-get         update \
-        && apt-get      install -y ca-certificates gosu less openssl pwgen wget netcat-traditional nano-tiny libedit2 libldap2 \
-        && apt-get      autoremove -y \
-        && apt-get      autoclean \
-        && rm -rf       /var/lib/apt/* \
-        && /usr/sbin/useradd virtuoso                                   \
-                --uid 1001                                              \
-                --no-log-init                                           \
-                --create-home                                           \
-                --user-group                                            \
-                --home-dir "$VIRTUOSO_HOME"                             \
-                --shell  /bin/bash                                      \
-        && mkdir -p "$VIRTUOSO_HOME"/database                           \
-        && mkdir -p "$VIRTUOSO_HOME"/settings                           \
-        && mkdir -p "$VIRTUOSO_HOME"/initdb.d
+RUN        apt-get update \
+        && apt-get install -y --no-install-recommends \
+                ca-certificates \
+                curl \
+                gosu \
+                libedit2 \
+                libldap2 \
+                netcat-traditional \
+                openssl \
+                pwgen \
+                vim-tiny \
+                wget \
+        && apt-get autoremove -y \
+        && apt-get autoclean \
+        && rm -rf /var/lib/apt/lists/* /var/log/* /tmp/* /var /tmp/* \
+        && /usr/sbin/useradd virtuoso \
+                --no-log-init \
+                --create-home \
+                --user-group \
+                --home-dir "$VIRTUOSO_HOME" \
+                --shell /sbin/nologin \
+        && /usr/sbin/groupmod --gid 65532 virtuoso \
+        && /usr/sbin/usermod  --uid 65532 virtuoso
 
 
 #
 #  Install Virtuoso Open Source 7.x
 #
-COPY --chown=virtuoso:virtuoso --from=vos_build "$VIRTUOSO_HOME" "$VIRTUOSO_HOME"
-COPY --chown=virtuoso:virtuoso --chmod=755 ./virtuoso-entrypoint.sh /
+COPY --chown=root:root --from=vos_build "$VIRTUOSO_HOME" "$VIRTUOSO_HOME"
+COPY --chown=root:root --chmod=755 ./virtuoso-entrypoint.sh /
 
 
 #
 #  Finalize installation
 #
-RUN        ln -s "$VIRTUOSO_HOME"/database /database                    \
-        && ln -s "$VIRTUOSO_HOME"/settings /settings                    \
+RUN        mkdir -p "$VIRTUOSO_HOME"/database \
+        && mkdir -p "$VIRTUOSO_HOME"/settings \
+        && mkdir -p "$VIRTUOSO_HOME"/initdb.d \
+        && chown -R virtuoso:virtuoso "$VIRTUOSO_HOME/database" \
+        && ln -s "$VIRTUOSO_HOME"/database /database \
+        && ln -s "$VIRTUOSO_HOME"/settings /settings \
         && ln -s "$VIRTUOSO_HOME"/initdb.d /initdb.d
+
 
 #
 #  Default directory

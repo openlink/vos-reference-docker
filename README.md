@@ -46,7 +46,7 @@ $ git clone https://github.com/openlink/vos-reference-docker
 $ ./build.sh
 
 ======================================================================
-  BUILD STARTED: Mon May 11 06:15:23 PM UTC 2026
+  BUILD STARTED: Mon May 18 06:15:23 PM UTC 2026
 ======================================================================
 
  * Pulling docker image
@@ -55,7 +55,7 @@ $ ./build.sh
    (this may take around 15-30 minutes on current hardware)
 
 ======================================================================
-  BUILD FINISHED: Mon May 11 06:31:48 PM UTC 2026
+  BUILD FINISHED: Mon May 18 06:31:48 PM UTC 2026
 ======================================================================
 ```
 
@@ -69,10 +69,9 @@ $ docker run -i -t vos-reference version
 This Docker image is using the following version of Virtuoso:
 
 Virtuoso Open Source Edition (Column Store) (multi threaded)
-Version 7.2.17.3243-pthreads as of May 11 2026 (c4fd28e)
+Version 7.2.17.3243-pthreads as of May 18 2026 (c4fd28e)
 Compiled for Linux (x86_64-pc-linux-gnu)
 Copyright (C) 1998-2026 OpenLink Software
-
 ```
 
 ## Configuring the Build
@@ -102,7 +101,7 @@ The difference between this reference image and the official images published by
 
 OpenLink also provides VOS images based on Ubuntu or Alpine, for a total of four internal builds.
 
-Building official images with the method in this reference image requires half of those builds to run through an emulator, which is slow. A native build usually takes 20-30 minutes on a matching CPU. The same build for a different CPU architecture through an emulator takes about 4-5 hours. Total build time across both distributions and architectures is about 10 hours.
+Building official images with the method in this reference image requires half of those builds to run through an emulator, which is slow. A native build usually takes 15-30 minutes on a matching CPU. The same build for a different CPU architecture through an emulator takes about 4-5 hours. Total build time across both distributions and architectures is about 10 hours.
 
 OpenLink already builds and tests Virtuoso Open Source on multiple platforms to validate behavior with different operating systems, development tools and libraries. This is equivalent to the `vos-build` steps in this reference `Dockerfile`.
 
