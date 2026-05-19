@@ -193,6 +193,7 @@ ARG TARGETPLATFORM
 ENV DOCKER_TAG="$DOCKER_TAG/$GIT_TAG"
 ENV VIRTUOSO_HOME=/opt/virtuoso-opensource
 ENV PATH=$VIRTUOSO_HOME/bin:$PATH
+ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM=xterm
 
 
@@ -211,7 +212,7 @@ LABEL docker_tag="$DOCKER_TAG"
 #  Update the OS with all the runtime packages Virtuoso requires
 #
 RUN        apt-get update \
-        && apt-get install -y \
+        && apt-get install -y --no-install-recommends \
                 ca-certificates \
                 gosu \
                 less \
@@ -224,7 +225,7 @@ RUN        apt-get update \
                 wget \
         && apt-get autoremove -y \
         && apt-get autoclean \
-        && rm -rf /var/lib/apt/* \
+        && rm -rf /var/lib/apt/lists/* /var/log/* /tmp/* /var /tmp/* \
         && /usr/sbin/useradd virtuoso \
                 --uid 1001 \
                 --no-log-init \
